@@ -6,3 +6,7 @@ add_folder(TMesh "*.c" "*.h" "*.cpp" "*.hpp")
 
 set(BUILD_TARGET "MeshFix")
 add_executable(${BUILD_TARGET} ${SOURCE_FILES})
+
+install(TARGETS ${BUILD_TARGET}
+        EXPORT MeshFixTargets
+        RUNTIME DESTINATION bin)
