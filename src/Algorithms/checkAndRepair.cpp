@@ -357,12 +357,12 @@ bool Basic_TMesh::rebuildConnectivity(bool fixconnectivity) //!< AMF_CHANGE 1.1>
  int i=0;
  FOREACHVERTEX(v, n) { v->e0 = NULL; var[i] = new ExtVertex(v); v->info = (void *)i; i++; }
  int nt = T.numels();
- int *triangles = new int[nt*3];
+ uint64_t *triangles = new uint64_t[nt*3];
  i = 0; FOREACHTRIANGLE(t, n)
  {
-  triangles[i * 3] = (j_voidint)t->v1()->info;
-  triangles[i*3+1] = (j_voidint)t->v2()->info;
-  triangles[i*3+2] = (j_voidint)t->v3()->info;
+  triangles[i * 3] = (uint64_t)t->v1()->info;
+  triangles[i*3+1] = (uint64_t)t->v2()->info;
+  triangles[i*3+2] = (uint64_t)t->v3()->info;
   i++;
  }
  T.freeNodes();
@@ -376,8 +376,8 @@ bool Basic_TMesh::rebuildConnectivity(bool fixconnectivity) //!< AMF_CHANGE 1.1>
   if (v1!=v2 && v2!=v3 && v1!=v3) CreateIndexedTriangle(var, v1, v2, v3);
  }
 
- for (i=0; i<V.numels(); i++) delete(var[i]);
- delete var;
+ for (i=0; i<V.numels(); i++) delete var[i];
+ delete [] var;
  delete [] triangles;
 
  if(fixconnectivity)	return fixConnectivity();

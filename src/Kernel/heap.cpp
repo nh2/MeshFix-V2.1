@@ -62,8 +62,8 @@ int abstractHeap::upheap(int k)
   heap[fk] = t;
   if (positions != NULL)
   {
-   positions[(j_voidint)f] = k;
-   positions[(j_voidint)t] = fk;
+   positions[(uint64_t)f] = k;
+   positions[(uint64_t)t] = fk;
   }
   return upheap(fk);
  }
@@ -87,8 +87,8 @@ int abstractHeap::downheap(int k)
   heap[j] = t;
   if (positions != NULL)
   {
-   positions[(j_voidint)f] = k;
-   positions[(j_voidint)t] = j;
+   positions[(uint64_t)f] = k;
+   positions[(uint64_t)t] = j;
   }
   return downheap(j);
  }
@@ -101,18 +101,18 @@ int abstractHeap::insert(void *t)
  if (numels == maxels) return -1;
 
  heap[++numels] = t;
- if (positions != NULL) positions[(j_voidint)t] = numels;
+ if (positions != NULL) positions[(uint64_t)t] = numels;
  return upheap(numels);
 }
 
 void *abstractHeap::removeHead()
 {
  void *t = heap[1];
- if (positions != NULL) positions[(j_voidint)t] = 0;
+ if (positions != NULL) positions[(uint64_t)t] = 0;
  heap[1] = heap[numels--];
  if (numels)
  {
-  if (positions != NULL) positions[(j_voidint)heap[1]] = 1;
+  if (positions != NULL) positions[(uint64_t)heap[1]] = 1;
   downheap(1);
  }
 

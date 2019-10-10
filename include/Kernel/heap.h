@@ -57,7 +57,7 @@ class abstractHeap
  void **heap;		//!< Heap data is stored here
  int numels;		//!< Current number of elements
  int maxels;		//!< Maximum number of elements
- int *positions;	//!< Optional pointer to an array of positions
+ uint64_t *positions;	//!< Optional pointer to an array of positions
 
  int upheap(int i);	//!< Moves the i'th object up on the heap
  int downheap(int i);	//!< Moves the i'th object down on the heap
