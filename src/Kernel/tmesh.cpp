@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <sstream>
+#include <iostream>
+#include <memory>
 
 namespace T_MESH
 {
@@ -40,12 +43,12 @@ extern "C" void initPredicates();
 
 void (* TMesh::display_message)(const char*, int) = NULL;
 
-char *TMesh::app_name = NULL;
-char *TMesh::app_version = NULL;
-char *TMesh::app_year = NULL;
-char *TMesh::app_authors = NULL;
-char *TMesh::app_url = NULL;
-char *TMesh::app_maillist = NULL;
+const char *TMesh::app_name = NULL;
+const char *TMesh::app_version = NULL;
+const char *TMesh::app_year = NULL;
+const char *TMesh::app_authors = NULL;
+const char *TMesh::app_url = NULL;
+const char *TMesh::app_maillist = NULL;
 const char *TMesh::filename = NULL;
 bool TMesh::quiet = false;
 
@@ -63,23 +66,27 @@ void TMesh::init(void (*dm)(const char *, int))
  initPredicates();
 }
 
+std::unique_ptr<char, decltype(std::free)*> safePrintf(const char* format, va_list& ap) {
+  char* result;
+  vasprintf(&result, format, ap);
+  return { result, &std::free };
+}
 
 ///////////// Prints a fatal error message and exits /////////////
 
 void TMesh::error(const char *msg, ...)
 {
- static char fmt[2048], fms[4096];
  va_list ap;
  va_start(ap, msg);
- strcpy(fmt,"\nERROR- ");
- strcat(fmt,msg);
- vsprintf(fms,fmt,ap);
+
+ std::stringstream fms;
+ fms << "\nERROR- " << safePrintf(msg, ap).get();
 
  if (display_message != NULL)
-  display_message(fms, DISPMSG_ACTION_ERRORDIALOG);
+  display_message(fms.str().c_str(), DISPMSG_ACTION_ERRORDIALOG);
  else
  {
-  fprintf(stderr,fms);
+  std::cerr << fms.str();
   exit(-1);
  }
 }
@@ -89,17 +96,16 @@ void TMesh::error(const char *msg, ...)
 void TMesh::warning(const char *msg, ...)
 {
  if (quiet) return;
- static char fmt[2048], fms[4096];
  va_list ap;
  va_start(ap, msg);
- strcpy(fmt,"WARNING- ");
- strcat(fmt,msg);
- vsprintf(fms,fmt,ap);
+
+ std::stringstream fms;
+ fms << "WARNING- " << safePrintf(msg, ap).get();
 
  if (display_message != NULL) 
-  display_message(fms, DISPMSG_ACTION_PUTMESSAGE);
+  display_message(fms.str().c_str(), DISPMSG_ACTION_PUTMESSAGE);
  else
-  fputs(fms, stderr);
+   std::cerr << fms.str();
 
  va_end(ap);
 }
@@ -109,17 +115,16 @@ void TMesh::warning(const char *msg, ...)
 void TMesh::info(const char *msg, ...)
 {
  if (quiet) return;
- static char fmt[2048], fms[4096];
- va_list ap;
- va_start(ap, msg);
- strcpy(fmt,"INFO- ");
- strcat(fmt,msg);
- vsprintf(fms,fmt,ap);
+  va_list ap;
+  va_start(ap, msg);
+
+  std::stringstream fms;
+  fms << "INFO- " << safePrintf(msg, ap).get();
 
  if (display_message != NULL) 
-  display_message(fms, DISPMSG_ACTION_PUTMESSAGE);
+  display_message(fms.str().c_str(), DISPMSG_ACTION_PUTMESSAGE);
  else
-  printf(fms);
+   std::cout << fms.str();
 
  va_end(ap);
 }
@@ -218,7 +223,7 @@ bool TMesh::isUsingFiltering()
 void TMesh::addMessageToLogFile(const char *msg)
 {
 	FILE *fp = fopen("tmesh.log", "a");
-	fprintf(fp, msg);
+	fputs(msg, fp);
 	fclose(fp);
 }
 
@@ -253,7 +258,7 @@ void TMesh::printElapsedTime(bool reset)
 {
 	static clock_t beginning_time;
 	if (reset) beginning_time = clock();
-	else printf("\n\n********** PARTIAL ELAPSED: %d msecs\n\n", (clock() - beginning_time));
+	else printf("\n\n********** PARTIAL ELAPSED: %ld msecs\n\n", (clock() - beginning_time));
 }
 
 } //namespace T_MESH

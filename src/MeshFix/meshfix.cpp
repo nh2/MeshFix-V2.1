@@ -39,14 +39,14 @@ bool joinClosestComponents(Basic_TMesh *tin)
 	{
 		i++;
 		triList.appendHead(t);
-		t->info = (void *)i;
+		t->info = reinterpret_cast<void*>(i);
 
 		while (triList.numels())
 		{
 			t = (Triangle *)triList.popHead();
-			if ((s = t->t1()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = (void *)i; }
-			if ((s = t->t2()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = (void *)i; }
-			if ((s = t->t3()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = (void *)i; }
+			if ((s = t->t1()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = reinterpret_cast<void*>(i); }
+			if ((s = t->t2()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = reinterpret_cast<void*>(i); }
+			if ((s = t->t3()) != NULL && s->info == NULL) { triList.appendHead(s); s->info = reinterpret_cast<void*>(i); }
 		}
 	}
 
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
  TMesh::info("Saving output mesh ...\n");
  tin.save(outfilename);
 
- printf("Elapsed time: %d ms\n", clock() - beginning);
+ printf("Elapsed time: %ld ms\n", clock() - beginning);
 
  return 0;
 }

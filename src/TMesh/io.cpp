@@ -34,6 +34,7 @@
 #include <ctype.h>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 namespace T_MESH
 {
@@ -92,7 +93,7 @@ inline void PRINT_PLY_COMMENT(FILE *f)
 
 /// Returns TRUE if the two strings are equal in a case-insensitive sense /////
 
-inline bool sameString(char *a, char *b)
+inline bool sameString(const char *a, const char *b)
 {
 	int i = 0;
 	while (a[i] != '\0' && b[i] != '\0')
@@ -658,7 +659,7 @@ int Basic_TMesh::saveIV(const char *fname)
  fprintf(fp,"Separator {\n");
  fprintf(fp," Coordinate3 {\n  point [\n");
 
- FOREACHVERTEX(v, n) fprintf(fp, "   %f %f %f,\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+ FOREACHVERTEX(v, n) fprintf(fp, "   %.17g %.17g %.17g,\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
 
  fprintf(fp,"  ]\n }\n");
  fprintf(fp," IndexedFaceSet {\n  coordIndex [\n");
@@ -706,7 +707,7 @@ int Basic_TMesh::saveVRML1(const char *fname, const int mode)
  fprintf(fp,"Separator {\n");
  fprintf(fp," Coordinate3 {\n  point [\n");
  
- FOREACHVERTEX(v, n) fprintf(fp, "   %f %f %f,\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+ FOREACHVERTEX(v, n) fprintf(fp, "   %.17g %.17g %.17g,\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
 
  fprintf(fp,"  ]\n }\n");
 
@@ -723,7 +724,7 @@ int Basic_TMesh::saveVRML1(const char *fname, const int mode)
    FOREACHTRIANGLE(t, n)
    {
     pkc = ((uint64_t)t->info);
-    fprintf(fp,"  %f %f %f,\n",((pkc>>24)&0x000000ff)/255.0,((pkc>>16)&0x000000ff)/255.0,((pkc>>8)&0x000000ff)/255.0);
+    fprintf(fp,"  %.17g %.17g %.17g,\n",((pkc>>24)&0x000000ff)/255.0,((pkc>>16)&0x000000ff)/255.0,((pkc>>8)&0x000000ff)/255.0);
    }
    fprintf(fp," ]\n}\nMaterialBinding {\n value PER_FACE_INDEXED\n}\n");
    break;
@@ -732,7 +733,7 @@ int Basic_TMesh::saveVRML1(const char *fname, const int mode)
    FOREACHVERTEX(v, n)
    {
     pkc = ((uint64_t)v->info);
-    fprintf(fp,"  %f %f %f,\n",((pkc>>24)&0x000000ff)/255.0,((pkc>>16)&0x000000ff)/255.0,((pkc>>8)&0x000000ff)/255.0);
+    fprintf(fp,"  %.17g %.17g %.17g,\n",((pkc>>24)&0x000000ff)/255.0,((pkc>>16)&0x000000ff)/255.0,((pkc>>8)&0x000000ff)/255.0);
    }
    fprintf(fp," ]\n}\nMaterialBinding {\n value PER_VERTEX_INDEXED\n}\n");
    break;
@@ -810,7 +811,7 @@ int Basic_TMesh::saveOFF(const char *fname)
  PRINT_HEADING_COMMENT(fp);
  fprintf(fp,"%d %d 0\n",V.numels(),T.numels());
  
- FOREACHVERTEX(v, n) fprintf(fp, "%f %f %f\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+ FOREACHVERTEX(v, n) fprintf(fp, "%.17g %.17g %.17g\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
 
  ocds = new coord[V.numels()];
  i=0; FOREACHVERTEX(v, n) ocds[i++] = v->x;
@@ -877,7 +878,7 @@ int Basic_TMesh::saveVerTri(const char *fname)
  fprintf(fpv,"%d\n",V.numels());
  FOREACHVERTEX(v, n)
  {
-	 fprintf(fpv, "%f %f %f\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+	 fprintf(fpv, "%.17g %.17g %.17g\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
  }
  fclose(fpv);
 
@@ -885,7 +886,7 @@ int Basic_TMesh::saveVerTri(const char *fname)
  for (n=V.tail; n != NULL; n=n->prev)
  {
   v = ((Vertex *)n->data);
-  fprintf(fpj,"%f\n",(*((double *)(v->info))));
+  fprintf(fpj,"%.17g\n",(*((double *)(v->info))));
  }
  fclose(fpj);
 #endif
@@ -893,7 +894,7 @@ int Basic_TMesh::saveVerTri(const char *fname)
  ocds = new coord[V.numels()];
  i=0; FOREACHVERTEX(v, n) ocds[i++] = v->x;
  i=0; FOREACHVERTEX(v, n) v->x = ++i;
- i=0; FOREACHTRIANGLE(t, n) {i++; t->info = (void *)i;}
+ i=0; FOREACHTRIANGLE(t, n) {i++; t->info = reinterpret_cast<void*>(i);}
 
  fprintf(fpt,"%d\n",T.numels());
  FOREACHTRIANGLE(t, n)
@@ -1319,7 +1320,7 @@ int Basic_TMesh::savePLY(const char *fname, bool ascii)
  fprintf(fp,"property list uchar int vertex_indices\n");
  fprintf(fp,"end_header\n");
  
- if (ascii) FOREACHVERTEX(v, n) fprintf(fp, "%f %f %f\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+ if (ascii) FOREACHVERTEX(v, n) fprintf(fp, "%.17g %.17g %.17g\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
  else FOREACHVERTEX(v, n)
  {
   fc[0] = TMESH_TO_FLOAT(v->x); fc[1] = TMESH_TO_FLOAT(v->y); fc[2] = TMESH_TO_FLOAT(v->z);
@@ -1437,7 +1438,7 @@ int Basic_TMesh::saveOBJ(const char *fname)
 
  PRINT_HEADING_COMMENT(fp);
  
- FOREACHVERTEX(v, n) fprintf(fp, "v %f %f %f\n", TMESH_TO_FLOAT(v->x), TMESH_TO_FLOAT(v->y), TMESH_TO_FLOAT(v->z));
+ FOREACHVERTEX(v, n) fprintf(fp, "v %.17g %.17g %.17g\n", TMESH_TO_DOUBLE(v->x), TMESH_TO_DOUBLE(v->y), TMESH_TO_DOUBLE(v->z));
 
  ocds = new coord[V.numels()];
  i=0; FOREACHVERTEX(v, n) ocds[i++] = v->x;
@@ -1572,11 +1573,11 @@ int Basic_TMesh::saveSTL(const char *fname)
 	FOREACHTRIANGLE(t, n)
 	{
 		nor = t->getNormal();
-		fprintf(fp, " facet normal %f %f %f\n", TMESH_TO_FLOAT(nor.x), TMESH_TO_FLOAT(nor.y), TMESH_TO_FLOAT(nor.z));
+		fprintf(fp, " facet normal %.17g %.17g %.17g\n", TMESH_TO_DOUBLE(nor.x), TMESH_TO_DOUBLE(nor.y), TMESH_TO_DOUBLE(nor.z));
 		fprintf(fp, "  outer loop\n");
-		fprintf(fp, "   vertex %f %f %f\n", TMESH_TO_FLOAT(t->v1()->x), TMESH_TO_FLOAT(t->v1()->y), TMESH_TO_FLOAT(t->v1()->z));
-		fprintf(fp, "   vertex %f %f %f\n", TMESH_TO_FLOAT(t->v2()->x), TMESH_TO_FLOAT(t->v2()->y), TMESH_TO_FLOAT(t->v2()->z));
-		fprintf(fp, "   vertex %f %f %f\n", TMESH_TO_FLOAT(t->v3()->x), TMESH_TO_FLOAT(t->v3()->y), TMESH_TO_FLOAT(t->v3()->z));
+		fprintf(fp, "   vertex %.17g %.17g %.17g\n", TMESH_TO_DOUBLE(t->v1()->x), TMESH_TO_DOUBLE(t->v1()->y), TMESH_TO_DOUBLE(t->v1()->z));
+		fprintf(fp, "   vertex %.17g %.17g %.17g\n", TMESH_TO_DOUBLE(t->v2()->x), TMESH_TO_DOUBLE(t->v2()->y), TMESH_TO_DOUBLE(t->v2()->z));
+		fprintf(fp, "   vertex %.17g %.17g %.17g\n", TMESH_TO_DOUBLE(t->v3()->x), TMESH_TO_DOUBLE(t->v3()->y), TMESH_TO_DOUBLE(t->v3()->z));
 		fprintf(fp, "  endloop\n");
 		fprintf(fp, " endfacet\n");
 	}
@@ -1598,6 +1599,8 @@ int Basic_TMesh::saveEFF(const char *fname)
 		TMesh::warning("Can't open '%s' for output !\n", fname);
 		return 1;
 	}
+
+  os << std::setprecision(17);
 
 	os << "EFF\n";
 	os << V.numels() << " " << T.numels() << "\n";

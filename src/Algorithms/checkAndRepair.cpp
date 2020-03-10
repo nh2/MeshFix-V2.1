@@ -355,7 +355,7 @@ bool Basic_TMesh::rebuildConnectivity(bool fixconnectivity) //!< AMF_CHANGE 1.1>
  Triangle *t;
  ExtVertex **var = new ExtVertex *[V.numels()];
  int i=0;
- FOREACHVERTEX(v, n) { v->e0 = NULL; var[i] = new ExtVertex(v); v->info = (void *)i; i++; }
+ FOREACHVERTEX(v, n) { v->e0 = NULL; var[i] = new ExtVertex(v); v->info = reinterpret_cast<void*>(i); i++; }
  int nt = T.numels();
  uint64_t *triangles = new uint64_t[nt*3];
  i = 0; FOREACHTRIANGLE(t, n)
